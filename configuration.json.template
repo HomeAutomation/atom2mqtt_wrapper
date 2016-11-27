@@ -1,0 +1,9 @@
+{
+  "mqtt": {
+    "url": "mqtt://123.123.123.123",
+	"port": "1883",
+	"username": "",
+	"password": "",
+	"clientId": "mqttjslogic"
+  }
+}
