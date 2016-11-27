@@ -1,5 +1,5 @@
 # atom2mqtt_wrapper
-Protocol implementation for auml can homeautomation
+Node.js implementation to port existing atom1.5 scripts to communicate with mqtt
 
 ## Install node 7
 ```bash
