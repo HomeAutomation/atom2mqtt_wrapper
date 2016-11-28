@@ -17,19 +17,13 @@ class skohylla {
         this.oldPwmValue = 0;
         this.turnOffCnt = 0;
         this.last_dimmer_value = 0;
-        const SkoMovementTimeout = 100;
+        this.SkoMovementTimeout = 100;
         
         mqttManager.registerCallback(`CAN/${this.mySensor}/Status`, this.sensorOnMessage.bind(this));
         mqttManager.registerCallback(`CAN/${this.myDimmer}/Pwm`, this.dimmerOnMessage.bind(this));
 
-        /*
-        Module_RegisterToOnMessage(aliasnameSensor, function(alias_name, command, variables) { self.sensorOnMessage(alias_name, command, variables) });
-        Module_RegisterToOnChange( aliasnameSensor, function(alias_name, available,test) { self.sensorOnline(alias_name, available,test) });
-        Module_RegisterToOnChange( aliasnameDimmer, function(alias_name, available) { self.dimmerOnline(alias_name, available) });
-        */
         /* Start interval timer for sending timestamp to network. Arguments are the callback function and time in milliseconds 
         used to make sure an eth-node gets its init packet (600s) */
-        //this.myTimer = Timer_SetTimer(function(timer) {self.timerUpdate(timer)}, 5000, true);
         setInterval(this.timerUpdate.bind(this), 5000);
         console.log("Skohylla created.", this.mySensor, this.myDimmer, this.triggstate);
     }
@@ -57,8 +51,10 @@ class skohylla {
         //Log("\033[33mPin high.\033[0m\n");
         console.log("Not Match triggerstate!");
       }
+      console.log("Counter was", this.turnOffCnt);
       if (this.turnOffCnt <  this.SkoMovementTimeout) {
         this.turnOffCnt = this.SkoMovementTimeout;
+        console.log("Counter updated to", this.turnOffCnt);
       }
     }
     
@@ -70,7 +66,7 @@ class skohylla {
     
     timerUpdate(timer)
     {
-      console.log("Timer called.", this.turnOffCnt);
+      //console.log("Timer called.", this.turnOffCnt);
       
     	if (this.turnOffCnt > 0) {
     		this.turnOffCnt -= 5;
@@ -78,13 +74,12 @@ class skohylla {
     			this.turnOffCnt = 0;
     		}
     		if (this.turnOffCnt == 0) {
-    			//Turn off light
+    			//Turn off light 
     			//log(this.myName + ":" + this.myId + "> Light off.\n");
-    			var last_value_string = Storage_GetParameter("LastValues", this.myDimmer);
-    			var last_value = eval("(" + last_value_string + ")");
-    			this.oldPwmValue = last_value["Level"]["value"];
+    			this.oldPwmValue = this.last_dimmer_value;
     			//this.myPWM.setPWMValue(0,2);
-    			Dimmer_AbsoluteFade(this.myDimmer, 132, 0);
+    			//Dimmer_AbsoluteFade(this.myDimmer, 132, 0);
+          this.mqttManager.publish("CAN/"+this.myDimmer, '{"command":"Abs_Fade","variables":{"EndValue":0,"Speed":135}}');
     			//getDimmerService('Skohylla').absFade(2,129, 0);
     		}
     	}
